@@ -78,14 +78,23 @@
         </div>
       </div>
 
-      <!-- Chart -->
+      <!-- Chart Panel -->
       <div class="table-card">
         <div class="table-header">
           <h3>📊 Pencapaian KPI Keseluruhan</h3>
-          <span class="badge blue" id="overall-score-badge">—</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span class="badge blue" id="overall-score-badge">—</span>
+            <div class="chart-toggle">
+              <button class="toggle-btn active" id="btn-bar" onclick="switchChart('bar')">📊 Bar</button>
+              <button class="toggle-btn" id="btn-pie" onclick="switchChart('pie')">🥧 Pai</button>
+              <button class="toggle-btn" id="btn-line" onclick="switchChart('line')">📈 Line</button>
+            </div>
+          </div>
         </div>
         <div style="padding:20px;">
-          <div class="chart-container" id="dashboardChart"></div>
+          <div id="chart-bar-view"><div class="chart-container" id="dashboardChart"></div></div>
+          <div id="chart-pie-view" style="display:none;"></div>
+          <div id="chart-line-view" style="display:none;"></div>
         </div>
       </div>
 
@@ -477,6 +486,155 @@
   }
 
   function printLaporan() { window.print(); }
+
+  // ===== CHART TOGGLE =====
+  let currentChart = 'bar';
+
+  function switchChart(type) {
+    currentChart = type;
+    ['bar','pie','line'].forEach(t => {
+      document.getElementById('chart-' + t + '-view').style.display = t === type ? 'block' : 'none';
+      const btn = document.getElementById('btn-' + t);
+      btn.classList.toggle('active', t === type);
+    });
+    if (type === 'pie') renderPieChart();
+    if (type === 'line') renderLineChart();
+  }
+
+  function renderPieChart() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const container = document.getElementById('chart-pie-view');
+    const cx = 160, cy = 160, r = 130, ri = 70;
+    const colors = { green:'#16a34a', orange:'#d97706', red:'#dc2626' };
+    const light  = { green:'#dcfce7', orange:'#fef9c3', red:'#fee2e2' };
+
+    let data = kpis.map(kpi => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      return { name: kpi.name, pct, color: getPctColor(pct) };
+    });
+
+    const total = data.reduce((s, d) => s + d.pct, 0) || 1;
+    let startAngle = -Math.PI / 2;
+    let slices = '';
+    let legend = '';
+
+    data.forEach((d, i) => {
+      const angle = (d.pct / total) * 2 * Math.PI;
+      const endAngle = startAngle + angle;
+      const x1 = cx + r * Math.cos(startAngle), y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle),   y2 = cy + r * Math.sin(endAngle);
+      const xi1 = cx + ri * Math.cos(startAngle), yi1 = cy + ri * Math.sin(startAngle);
+      const xi2 = cx + ri * Math.cos(endAngle),   yi2 = cy + ri * Math.sin(endAngle);
+      const large = angle > Math.PI ? 1 : 0;
+      const fill = colors[d.color];
+      const midAngle = startAngle + angle / 2;
+      const lx = cx + (r + 18) * Math.cos(midAngle);
+      const ly = cy + (r + 18) * Math.sin(midAngle);
+
+      slices += `<path d="M${xi1},${yi1} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} L${xi2},${yi2} A${ri},${ri} 0 ${large},0 ${xi1},${yi1} Z"
+        fill="${fill}" stroke="#fff" stroke-width="2" opacity="0.9"/>`;
+      if (d.pct > 5) slices += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="${fill}">${d.pct}%</text>`;
+
+      legend += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="width:14px;height:14px;border-radius:3px;background:${fill};flex-shrink:0;"></div>
+        <span style="font-size:13px;color:#374151;">${d.name}</span>
+        <span style="margin-left:auto;font-weight:700;color:${fill};">${d.pct}%</span>
+      </div>`;
+      startAngle = endAngle;
+    });
+
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;gap:32px;flex-wrap:wrap;">
+        <svg width="320" height="320" viewBox="0 0 320 320">
+          ${slices}
+          <text x="${cx}" y="${cy - 10}" text-anchor="middle" font-size="13" font-weight="700" fill="#374151">Pencapaian</text>
+          <text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="13" fill="#57606a">KPI</text>
+        </svg>
+        <div style="flex:1;min-width:200px;">${legend}</div>
+      </div>`;
+  }
+
+  function renderLineChart() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const container = document.getElementById('chart-line-view');
+    const W = 600, H = 260, padL = 50, padR = 20, padT = 20, padB = 50;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    const n = kpis.length;
+    if (n === 0) { container.innerHTML = '<p>Tiada data.</p>'; return; }
+
+    const data = kpis.map((kpi, i) => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      return { name: kpi.name, pct, color: getPctColor(pct) };
+    });
+
+    const xStep = chartW / (n - 1 || 1);
+    const points = data.map((d, i) => ({
+      x: padL + (n === 1 ? chartW / 2 : i * xStep),
+      y: padT + chartH - (d.pct / 100) * chartH,
+      ...d
+    }));
+
+    // Grid lines
+    let grid = '';
+    [0,25,50,75,100].forEach(v => {
+      const y = padT + chartH - (v / 100) * chartH;
+      grid += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`;
+      grid += `<text x="${padL - 6}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="11" fill="#9ca3af">${v}%</text>`;
+    });
+
+    // Threshold lines
+    grid += `<line x1="${padL}" y1="${padT + chartH - 0.85 * chartH}" x2="${W-padR}" y2="${padT + chartH - 0.85 * chartH}" stroke="#16a34a" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>`;
+    grid += `<line x1="${padL}" y1="${padT + chartH - 0.60 * chartH}" x2="${W-padR}" y2="${padT + chartH - 0.60 * chartH}" stroke="#d97706" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>`;
+
+    // Line path
+    const pathD = points.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+    // Area fill
+    const areaD = `${pathD} L${points[points.length-1].x},${padT+chartH} L${points[0].x},${padT+chartH} Z`;
+
+    // X labels
+    let xlabels = '';
+    points.forEach(p => {
+      const short = p.name.length > 12 ? p.name.slice(0, 11) + '…' : p.name;
+      xlabels += `<text x="${p.x}" y="${padT + chartH + 16}" text-anchor="middle" font-size="10" fill="#57606a">${short}</text>`;
+    });
+
+    // Dots & value labels
+    let dots = '';
+    const colorHex = { green:'#16a34a', orange:'#d97706', red:'#dc2626' };
+    points.forEach(p => {
+      const hex = colorHex[p.color];
+      dots += `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${hex}" stroke="#fff" stroke-width="2"/>`;
+      dots += `<text x="${p.x}" y="${p.y - 12}" text-anchor="middle" font-size="11" font-weight="700" fill="${hex}">${p.pct}%</text>`;
+    });
+
+    container.innerHTML = `
+      <div style="overflow-x:auto;">
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;display:block;margin:0 auto;">
+          <defs>
+            <linearGradient id="lineArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#2563eb" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          ${grid}
+          <path d="${areaD}" fill="url(#lineArea)"/>
+          <path d="${pathD}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          ${xlabels}
+          ${dots}
+        </svg>
+        <div style="display:flex;gap:20px;justify-content:center;margin-top:10px;font-size:11px;">
+          <span style="color:#16a34a;">— — Sasaran ≥85%</span>
+          <span style="color:#d97706;">— — Sederhana ≥60%</span>
+        </div>
+      </div>`;
+  }
 
   // Init
   renderDashboard();
