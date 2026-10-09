@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Log Masuk — Takwim Politeknik</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="logo">
+      <h1>📅 Takwim Politeknik</h1>
+      <p>Sistem Pengurusan Kalendar Akademik</p>
+    </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Alamat E-mel</label>
+        <input type="email" id="email" placeholder="nama@politeknik.edu.my" required/>
+      </div>
+      <div class="form-group">
+        <label>Kata Laluan</label>
+        <input type="password" id="password" placeholder="••••••••" required/>
+      </div>
+      <div id="loginError" style="color:var(--danger);font-size:12px;margin-bottom:10px;"></div>
+      <button type="submit" class="btn btn-primary w-full">Log Masuk</button>
+    </form>
+    <div style="margin-top:20px;background:#f7f8fa;border-radius:8px;padding:12px 14px;font-size:12px;">
+      <div style="font-weight:600;color:var(--muted);margin-bottom:6px;">Akaun Demo:</div>
+      <div style="margin-bottom:3px;">🔴 <strong>Admin</strong> — admin@politeknik.edu.my / Admin@123</div>
+      <div style="margin-bottom:3px;">🟢 <strong>Unit</strong> — siti@politeknik.edu.my / Unit@123</div>
+      <div>🔵 <strong>Guest</strong> — guest@politeknik.edu.my / Guest@123</div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="data.js"></script>
+<script>
+  bootstrapData();
+
+  // Auto redirect if already logged in
+  const sess = Auth.current();
+  if (sess) {
+    if (sess.role === 'admin') location.href = 'admin.html';
+    else if (sess.role === 'unit') location.href = 'unit.html';
+    else location.href = 'guest.html';
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const email    = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const user = Auth.login(email, password);
+    if (!user) {
+      document.getElementById('loginError').textContent = 'Email atau kata laluan tidak betul.';
+      return;
+    }
+    if (user.role === 'admin') location.href = 'admin.html';
+    else if (user.role === 'unit') location.href = 'unit.html';
+    else location.href = 'guest.html';
+  });
+</script>
+</body>
+</html>
