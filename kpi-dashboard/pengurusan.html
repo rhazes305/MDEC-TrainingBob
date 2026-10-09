@@ -71,18 +71,21 @@
           <div class="stat-sub">KPI ditetapkan</div>
         </div>
         <div class="stat-card green">
-          <div class="stat-label">KPI Mencapai Sasaran</div>
+          <div class="stat-label">✅ Capai Sasaran</div>
           <div class="stat-value" id="d-good">0</div>
+          <div class="stat-pct" id="d-good-pct">0%</div>
           <div class="stat-sub">Pencapaian ≥ 85%</div>
         </div>
         <div class="stat-card orange">
-          <div class="stat-label">KPI Sederhana</div>
+          <div class="stat-label">⚠️ Sederhana</div>
           <div class="stat-value" id="d-mod">0</div>
+          <div class="stat-pct" id="d-mod-pct">0%</div>
           <div class="stat-sub">Pencapaian 60–84%</div>
         </div>
         <div class="stat-card red">
-          <div class="stat-label">KPI Perlu Perhatian</div>
+          <div class="stat-label">❌ Perlu Perhatian</div>
           <div class="stat-value" id="d-low">0</div>
+          <div class="stat-pct" id="d-low-pct">0%</div>
           <div class="stat-sub">Pencapaian &lt; 60%</div>
         </div>
       </div>
@@ -231,10 +234,14 @@
       </tr>`;
     });
 
-    document.getElementById('d-total').textContent = kpis.length;
+    const total = kpis.length;
+    document.getElementById('d-total').textContent = total;
     document.getElementById('d-good').textContent = good;
     document.getElementById('d-mod').textContent = mod;
     document.getElementById('d-low').textContent = low;
+    document.getElementById('d-good-pct').textContent = total ? Math.round(good / total * 100) + '%' : '0%';
+    document.getElementById('d-mod-pct').textContent = total ? Math.round(mod / total * 100) + '%' : '0%';
+    document.getElementById('d-low-pct').textContent = total ? Math.round(low / total * 100) + '%' : '0%';
 
     const overallPct = totalW > 0 ? Math.round((totalWScore / totalW) * 100) : 0;
     document.getElementById('bigScore').textContent = totalWScore.toFixed(1) + ' / ' + totalW;

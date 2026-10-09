@@ -59,18 +59,21 @@
           <div class="stat-sub">KPI aktif ditetapkan</div>
         </div>
         <div class="stat-card green">
-          <div class="stat-label">KPI Capai Sasaran</div>
+          <div class="stat-label">✅ Capai Sasaran</div>
           <div class="stat-value" id="stat-achieved">0</div>
+          <div class="stat-pct" id="stat-achieved-pct">0%</div>
           <div class="stat-sub">Pencapaian ≥ 85%</div>
         </div>
         <div class="stat-card orange">
-          <div class="stat-label">KPI Sederhana</div>
+          <div class="stat-label">⚠️ Sederhana</div>
           <div class="stat-value" id="stat-moderate">0</div>
+          <div class="stat-pct" id="stat-moderate-pct">0%</div>
           <div class="stat-sub">Pencapaian 60–84%</div>
         </div>
         <div class="stat-card red">
-          <div class="stat-label">KPI Rendah</div>
+          <div class="stat-label">❌ Perlu Perhatian</div>
           <div class="stat-value" id="stat-low">0</div>
+          <div class="stat-pct" id="stat-low-pct">0%</div>
           <div class="stat-sub">Pencapaian &lt; 60%</div>
         </div>
       </div>
@@ -302,10 +305,14 @@
       </tr>`;
     });
 
-    document.getElementById('stat-total').textContent = kpis.length;
+    const total = kpis.length;
+    document.getElementById('stat-total').textContent = total;
     document.getElementById('stat-achieved').textContent = achieved;
     document.getElementById('stat-moderate').textContent = moderate;
     document.getElementById('stat-low').textContent = low;
+    document.getElementById('stat-achieved-pct').textContent = total ? Math.round(achieved / total * 100) + '%' : '0%';
+    document.getElementById('stat-moderate-pct').textContent = total ? Math.round(moderate / total * 100) + '%' : '0%';
+    document.getElementById('stat-low-pct').textContent = total ? Math.round(low / total * 100) + '%' : '0%';
     const overallPct = totalWeight > 0 ? Math.round(totalWScore / totalWeight * 100) : 0;
     document.getElementById('overall-score-badge').textContent = `Skor KPI: ${totalWScore.toFixed(1)} / ${totalWeight}`;
   }

@@ -60,6 +60,10 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; colo
 .stat-card .stat-label { font-size: 12px; color: #57606a; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
 .stat-card .stat-value { font-size: 32px; font-weight: 700; margin: 6px 0 4px; }
 .stat-card .stat-sub { font-size: 12px; color: #57606a; }
+.stat-card .stat-pct { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 2px; }
+.stat-card.green .stat-pct { color: #16a34a; }
+.stat-card.orange .stat-pct { color: #d97706; }
+.stat-card.red .stat-pct { color: #dc2626; }
 .stat-card.blue .stat-value { color: #2563eb; }
 .stat-card.green .stat-value { color: #16a34a; }
 .stat-card.orange .stat-value { color: #d97706; }
