@@ -63,24 +63,24 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; colo
 .stat-card .stat-pct { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 2px; }
 /* Blue card — unchanged */
 .stat-card.blue .stat-value { color: #2563eb; }
-/* Green card — solid green bg */
-.stat-card.green { background: #16a34a; border-color: #15803d; }
-.stat-card.green .stat-label { color: rgba(255,255,255,0.8); }
-.stat-card.green .stat-value { color: #fff; }
-.stat-card.green .stat-pct { color: #fff; font-size: 26px; }
-.stat-card.green .stat-sub { color: rgba(255,255,255,0.7); }
-/* Orange/Yellow card — solid amber bg */
-.stat-card.orange { background: #d97706; border-color: #b45309; }
-.stat-card.orange .stat-label { color: rgba(255,255,255,0.8); }
-.stat-card.orange .stat-value { color: #fff; }
-.stat-card.orange .stat-pct { color: #fff; font-size: 26px; }
-.stat-card.orange .stat-sub { color: rgba(255,255,255,0.7); }
-/* Red card — solid red bg */
-.stat-card.red { background: #dc2626; border-color: #b91c1c; }
-.stat-card.red .stat-label { color: rgba(255,255,255,0.8); }
-.stat-card.red .stat-value { color: #fff; }
-.stat-card.red .stat-pct { color: #fff; font-size: 26px; }
-.stat-card.red .stat-sub { color: rgba(255,255,255,0.7); }
+/* Green card — light green bg, dark green text */
+.stat-card.green { background: #dcfce7; border-color: #86efac; }
+.stat-card.green .stat-label { color: #14532d; }
+.stat-card.green .stat-value { color: #15803d; }
+.stat-card.green .stat-pct { color: #16a34a; font-size: 26px; }
+.stat-card.green .stat-sub { color: #166534; }
+/* Yellow card — light yellow bg, dark amber text */
+.stat-card.orange { background: #fef9c3; border-color: #fde047; }
+.stat-card.orange .stat-label { color: #713f12; }
+.stat-card.orange .stat-value { color: #a16207; }
+.stat-card.orange .stat-pct { color: #ca8a04; font-size: 26px; }
+.stat-card.orange .stat-sub { color: #854d0e; }
+/* Red card — light red bg, dark red text */
+.stat-card.red { background: #fee2e2; border-color: #fca5a5; }
+.stat-card.red .stat-label { color: #7f1d1d; }
+.stat-card.red .stat-value { color: #b91c1c; }
+.stat-card.red .stat-pct { color: #dc2626; font-size: 26px; }
+.stat-card.red .stat-sub { color: #991b1b; }
 
 /* ===== PROGRESS BAR ===== */
 .progress-bar { height: 8px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
