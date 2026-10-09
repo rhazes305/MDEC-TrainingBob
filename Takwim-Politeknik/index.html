@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Takwim Politeknik</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>📅 Takwim Politeknik</h1>
+    <p>Kalendar Akademik Politeknik Malaysia</p>
+  </header>
+
+  <main>
+    <section class="calendar-nav">
+      <button id="prevMonth">&#8592; Sebelum</button>
+      <h2 id="monthYear"></h2>
+      <button id="nextMonth">Seterusnya &#8594;</button>
+    </section>
+
+    <section class="calendar-grid">
+      <div class="day-label">Ahd</div>
+      <div class="day-label">Isn</div>
+      <div class="day-label">Sel</div>
+      <div class="day-label">Rab</div>
+      <div class="day-label">Kha</div>
+      <div class="day-label">Jum</div>
+      <div class="day-label">Sab</div>
+      <div id="calendarDays" class="days-container"></div>
+    </section>
+
+    <section class="event-section">
+      <h3>Acara / Cuti Akademik</h3>
+      <div id="eventList" class="event-list"></div>
+
+      <div class="add-event">
+        <h4>Tambah Acara</h4>
+        <input type="date" id="eventDate" />
+        <input type="text" id="eventName" placeholder="Nama acara..." />
+        <select id="eventType">
+          <option value="cuti">Cuti Umum</option>
+          <option value="akademik">Akademik</option>
+          <option value="peperiksaan">Peperiksaan</option>
+          <option value="aktiviti">Aktiviti</option>
+        </select>
+        <button id="addEventBtn">Tambah</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Takwim Politeknik Malaysia &copy; <span id="year"></span></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
