@@ -207,13 +207,14 @@
       totalW += kpi.weightage;
       if (pct >= 85) good++; else if (pct >= 60) mod++; else low++;
 
+      const txtColor = color === 'green' ? '#16a34a' : color === 'orange' ? '#d97706' : '#dc2626';
       chart.innerHTML += `
         <div class="chart-bar-row">
           <div class="chart-bar-label" title="${kpi.name}">${kpi.name}</div>
           <div class="chart-bar-wrap">
             <div class="chart-bar-fill ${color}" style="width:${pct}%">${pct > 12 ? pct + '%' : ''}</div>
           </div>
-          <div class="chart-bar-pct">${pct}%</div>
+          <div class="chart-bar-pct" style="color:${txtColor};font-weight:800;">${pct}%</div>
         </div>`;
 
       tbody.innerHTML += `<tr>
@@ -291,13 +292,14 @@
     Object.entries(catMap).forEach(([cat, data]) => {
       const avgPct = Math.round(data.totalPct / data.count);
       const color = getPctColor(avgPct);
+      const catTxtColor = color === 'green' ? '#16a34a' : color === 'orange' ? '#d97706' : '#dc2626';
       catChart.innerHTML += `
         <div class="chart-bar-row">
           <div class="chart-bar-label" title="${cat}">${cat}</div>
           <div class="chart-bar-wrap">
             <div class="chart-bar-fill ${color}" style="width:${avgPct}%">${avgPct > 12 ? avgPct + '%' : ''}</div>
           </div>
-          <div class="chart-bar-pct">${avgPct}%</div>
+          <div class="chart-bar-pct" style="color:${catTxtColor};font-weight:800;">${avgPct}%</div>
         </div>`;
     });
   }

@@ -279,13 +279,14 @@
       totalWScore += parseFloat(wScore);
       totalWeight += kpi.weightage;
 
+      const txtColor = color === 'green' ? '#16a34a' : color === 'orange' ? '#d97706' : '#dc2626';
       chart.innerHTML += `
         <div class="chart-bar-row">
           <div class="chart-bar-label" title="${kpi.name}">${kpi.name}</div>
           <div class="chart-bar-wrap">
-            <div class="chart-bar-fill ${color}" style="width:${pct}%">${pct > 15 ? pct + '%' : ''}</div>
+            <div class="chart-bar-fill ${color}" style="width:${pct}%">${pct > 12 ? pct + '%' : ''}</div>
           </div>
-          <div class="chart-bar-pct" style="color:var(--c,#374151)">${pct}%</div>
+          <div class="chart-bar-pct" style="color:${txtColor};font-weight:800;">${pct}%</div>
         </div>`;
 
       tbody.innerHTML += `<tr>
