@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Unit — Takwim Politeknik</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>📅 Takwim Politeknik</h2>
+      <p id="unitName">—</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span> Dashboard</div>
+      <div class="nav-item" data-page="activities"><span class="nav-icon">✅</span> Aktiviti Saya</div>
+      <div class="nav-item" data-page="calendar"><span class="nav-icon">🗓️</span> Kalendar</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="sidebarName">—</strong><span class="text-sm">Unit</span></div>
+      <button class="btn btn-ghost btn-sm w-full" onclick="logout()">Log Keluar</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <span class="text-muted text-sm" id="topDate"></span>
+    </div>
+
+    <!-- ═══ PAGE: DASHBOARD ═══════════════════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="card mt-16">
+        <div class="card-header"><h3>Progres Aktiviti Saya</h3></div>
+        <div class="card-body" id="myProgress"></div>
+      </div>
+      <div class="card mt-16">
+        <div class="card-header"><h3>Aktiviti Terbaru</h3></div>
+        <div class="card-body">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Nama Aktiviti</th><th>Tarikh</th><th>Status</th></tr></thead>
+            <tbody id="recentTable"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: AKTIVITI ════════════════════════════════════════════════ -->
+    <div class="page" id="page-activities">
+      <div class="card">
+        <div class="card-header">
+          <h3>Senarai Aktiviti</h3>
+          <button class="btn btn-primary btn-sm" onclick="openActModal()">+ Tambah Aktiviti</button>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <select id="filterStatus" onchange="loadActivities()">
+              <option value="">Semua Status</option>
+              <option value="selesai">Selesai</option>
+              <option value="belum">Belum Selesai</option>
+            </select>
+            <input type="text" id="searchAct" placeholder="Cari nama aktiviti..." oninput="loadActivities()" style="max-width:240px;"/>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Nama Aktiviti</th><th>Tujuan</th><th>Pencapaian</th><th>Tarikh</th><th>Status</th><th>Justifikasi/Catatan</th><th>Tindakan</th></tr></thead>
+            <tbody id="activitiesTable"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: KALENDAR ════════════════════════════════════════════════ -->
+    <div class="page" id="page-calendar">
+      <div class="cal-nav">
+        <button class="btn btn-ghost btn-sm" id="calPrev">← Sebelum</button>
+        <h2 id="calTitle"></h2>
+        <button class="btn btn-ghost btn-sm" id="calNext">Seterusnya →</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="mt-16" style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;">
+        <span><span class="badge badge-cuti">Cuti</span></span>
+        <span><span class="badge badge-akademik">Akademik</span></span>
+        <span><span class="badge badge-peperiksaan">Peperiksaan</span></span>
+        <span><span class="badge badge-aktiviti">Aktiviti</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Modal: Tambah/Edit Aktiviti ══════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="actModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="actModalTitle">Tambah Aktiviti</h3>
+      <button class="close-btn" onclick="closeActModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="actId"/>
+      <div class="form-group"><label>Nama Aktiviti *</label><input id="actName" placeholder="Nama aktiviti..."/></div>
+      <div class="form-group"><label>Tujuan</label><textarea id="actPurpose" rows="2" placeholder="Tujuan aktiviti..."></textarea></div>
+      <div class="form-group"><label>Pencapaian</label><textarea id="actAchievement" rows="2" placeholder="Pencapaian atau hasil..."></textarea></div>
+      <div class="form-group"><label>Tarikh Aktiviti *</label><input id="actDate" type="date"/></div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="actStatus">
+          <option value="belum">Belum Selesai</option>
+          <option value="selesai">Selesai</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Justifikasi / Catatan</label><textarea id="actJustification" rows="2" placeholder="Catatan atau sebab..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeActModal()">Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="saveActivity()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="api.js"></script>
+<script>
+// ── Init ────────────────────────────────────────────────────────────────────
+const user = requireAuth('unit');
+document.getElementById('sidebarName').textContent = user.name;
+document.getElementById('unitName').textContent    = user.unit_name || 'Unit';
+document.getElementById('topDate').textContent     = new Date().toLocaleDateString('ms-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── Navigation ──────────────────────────────────────────────────────────────
+const pageTitles = { dashboard: 'Dashboard', activities: 'Aktiviti Saya', calendar: 'Kalendar' };
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    const pg = item.dataset.page;
+    document.getElementById(`page-${pg}`).classList.add('active');
+    document.getElementById('pageTitle').textContent = pageTitles[pg];
+    if (pg === 'activities') loadActivities();
+    if (pg === 'calendar')   renderCal();
+    if (pg === 'dashboard')  loadDashboard();
+  });
+});
+
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let allEvents = [];
+let allActs = [];
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [acts, events] = await Promise.all([api.get('/api/activities'), api.get('/api/events')]);
+  allActs = acts; allEvents = events;
+
+  const selesai = acts.filter(a => a.status === 'selesai').length;
+  const belum   = acts.filter(a => a.status === 'belum').length;
+  const total   = acts.length;
+  const pct     = total > 0 ? Math.round(selesai / total * 100) : 0;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-lbl">Jumlah Aktiviti</div></div>
+    <div class="stat-card green"><div class="stat-val">${selesai}</div><div class="stat-lbl">Selesai</div></div>
+    <div class="stat-card red"><div class="stat-val">${belum}</div><div class="stat-lbl">Belum Selesai</div></div>
+    <div class="stat-card orange"><div class="stat-val">${pct}%</div><div class="stat-lbl">Peratus Selesai</div></div>
+  `;
+
+  document.getElementById('myProgress').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span class="bold">Progres Keseluruhan</span>
+      <span class="bold">${pct}%</span>
+    </div>
+    <div class="progress-wrap" style="height:14px;margin-bottom:8px;">
+      <div class="progress-bar" style="width:${pct}%"></div>
+    </div>
+    <div style="display:flex;gap:16px;font-size:12px;color:var(--muted);">
+      <span>✅ Selesai: ${selesai}</span>
+      <span>⏳ Belum: ${belum}</span>
+      <span>📋 Jumlah: ${total}</span>
+    </div>
+  `;
+
+  const recent = acts.sort((a,b) => b.activity_date.localeCompare(a.activity_date)).slice(0,5);
+  document.getElementById('recentTable').innerHTML = recent.map(a => `
+    <tr>
+      <td>${a.name}</td>
+      <td>${a.activity_date}</td>
+      <td><span class="badge badge-${a.status}">${a.status}</span></td>
+    </tr>`).join('') || '<tr><td colspan="3" class="text-muted" style="text-align:center;padding:16px;">Tiada aktiviti</td></tr>';
+}
+
+// ── Activities CRUD ──────────────────────────────────────────────────────────
+async function loadActivities() {
+  let acts = await api.get('/api/activities');
+  allActs = acts;
+
+  const filterStatus = document.getElementById('filterStatus').value;
+  const search = document.getElementById('searchAct').value.toLowerCase();
+
+  if (filterStatus) acts = acts.filter(a => a.status === filterStatus);
+  if (search)       acts = acts.filter(a => a.name.toLowerCase().includes(search));
+
+  document.getElementById('activitiesTable').innerHTML = acts.length
+    ? acts.map((a, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td class="bold">${a.name}</td>
+        <td>${a.purpose||'—'}</td>
+        <td>${a.achievement||'—'}</td>
+        <td>${a.activity_date}</td>
+        <td><span class="badge badge-${a.status}">${a.status}</span></td>
+        <td>${a.justification||'—'}</td>
+        <td>
+          <button class="btn btn-accent btn-sm" onclick="editActivity(${JSON.stringify(a).replace(/"/g,'&quot;')})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteActivity(${a.id})">Padam</button>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" class="text-muted" style="text-align:center;padding:20px;">Tiada aktiviti</td></tr>';
+}
+
+function openActModal(a) {
+  document.getElementById('actId').value            = a ? a.id : '';
+  document.getElementById('actName').value          = a ? a.name : '';
+  document.getElementById('actPurpose').value       = a ? (a.purpose||'') : '';
+  document.getElementById('actAchievement').value   = a ? (a.achievement||'') : '';
+  document.getElementById('actDate').value          = a ? a.activity_date : '';
+  document.getElementById('actStatus').value        = a ? a.status : 'belum';
+  document.getElementById('actJustification').value = a ? (a.justification||'') : '';
+  document.getElementById('actModalTitle').textContent = a ? 'Edit Aktiviti' : 'Tambah Aktiviti';
+  document.getElementById('actModal').classList.remove('hidden');
+}
+function editActivity(a) { openActModal(a); }
+function closeActModal() { document.getElementById('actModal').classList.add('hidden'); }
+
+async function saveActivity() {
+  const id   = document.getElementById('actId').value;
+  const body = {
+    name:          document.getElementById('actName').value,
+    purpose:       document.getElementById('actPurpose').value || null,
+    achievement:   document.getElementById('actAchievement').value || null,
+    activity_date: document.getElementById('actDate').value,
+    status:        document.getElementById('actStatus').value,
+    justification: document.getElementById('actJustification').value || null,
+  };
+  if (!body.name || !body.activity_date) { showToast('Nama aktiviti dan tarikh diperlukan', 'error'); return; }
+
+  try {
+    if (id) await api.put(`/api/activities/${id}`, body);
+    else    await api.post('/api/activities', body);
+    closeActModal();
+    showToast('Aktiviti berjaya disimpan', 'success');
+    loadActivities();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function deleteActivity(id) {
+  if (!confirm('Padam aktiviti ini?')) return;
+  try {
+    await api.delete(`/api/activities/${id}`);
+    showToast('Aktiviti berjaya dipadam', 'success');
+    loadActivities();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+async function renderCal() {
+  if (!allEvents.length) allEvents = await api.get('/api/events');
+  document.getElementById('calTitle').textContent = `${MONTHS_MS[calMonth]} ${calYear}`;
+  renderCalendar('calGrid', calYear, calMonth, allEvents);
+}
+document.getElementById('calPrev').onclick = () => { calMonth--; if (calMonth < 0) { calMonth=11; calYear--; } renderCal(); };
+document.getElementById('calNext').onclick = () => { calMonth++; if (calMonth > 11) { calMonth=0; calYear++; } renderCal(); };
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadDashboard();
+</script>
+</body>
+</html>

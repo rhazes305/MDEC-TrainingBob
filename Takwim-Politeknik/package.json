@@ -1,0 +1,21 @@
+{
+  "name": "takwim-politeknik",
+  "version": "1.0.0",
+  "description": "Dashboard Takwim Politeknik Malaysia",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "lowdb": "^1.0.0",
+    "shortid": "^2.2.16"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}

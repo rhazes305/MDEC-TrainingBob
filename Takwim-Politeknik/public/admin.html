@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin — Takwim Politeknik</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>📅 Takwim Politeknik</h2>
+      <p>Panel Admin</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span> Dashboard</div>
+      <div class="nav-item" data-page="users"><span class="nav-icon">👥</span> Pengguna</div>
+      <div class="nav-item" data-page="events"><span class="nav-icon">📅</span> Acara Kalendar</div>
+      <div class="nav-item" data-page="report"><span class="nav-icon">📊</span> Laporan Aktiviti</div>
+      <div class="nav-item" data-page="calendar"><span class="nav-icon">🗓️</span> Kalendar</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="sidebarName">—</strong><span id="sidebarRole"></span></div>
+      <button class="btn btn-ghost btn-sm w-full" onclick="logout()">Log Keluar</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <span class="text-muted text-sm" id="topDate"></span>
+    </div>
+
+    <!-- ═══ PAGE: DASHBOARD ═══════════════════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card">
+          <div class="card-header"><h3>Peratus Aktiviti Selesai / Belum</h3></div>
+          <div class="card-body" id="quickReport"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Acara Akan Datang</h3></div>
+          <div class="card-body" id="upcomingEvents"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: PENGGUNA ════════════════════════════════════════════════ -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="card-header">
+          <h3>Senarai Pengguna</h3>
+          <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Tambah Pengguna</button>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Nama</th><th>E-mel</th><th>Peranan</th><th>Unit</th><th>Tarikh Daftar</th><th>Tindakan</th></tr></thead>
+            <tbody id="usersTable"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: EVENTS ═════════════════════════════════════════════════ -->
+    <div class="page" id="page-events">
+      <div class="card">
+        <div class="card-header">
+          <h3>Senarai Acara Kalendar</h3>
+          <button class="btn btn-primary btn-sm" onclick="openEventModal()">+ Tambah Acara</button>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Tajuk</th><th>Tarikh Mula</th><th>Tarikh Tamat</th><th>Jenis</th><th>Tindakan</th></tr></thead>
+            <tbody id="eventsTable"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: LAPORAN ════════════════════════════════════════════════ -->
+    <div class="page" id="page-report">
+      <div class="card mb-16">
+        <div class="card-header"><h3>📊 Laporan Aktiviti Mengikut Unit</h3></div>
+        <div class="card-body">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Nama Pengguna</th><th>Unit</th><th>Jumlah</th><th>Selesai</th><th>Belum</th><th>Peratus Selesai</th><th>Progres</th></tr></thead>
+            <tbody id="reportTable"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Semua Aktiviti (Terperinci)</h3></div>
+        <div class="card-body">
+          <div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Pengguna</th><th>Unit</th><th>Nama Aktiviti</th><th>Tujuan</th><th>Pencapaian</th><th>Tarikh</th><th>Status</th><th>Justifikasi</th></tr></thead>
+            <tbody id="allActivitiesTable"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: KALENDAR ════════════════════════════════════════════════ -->
+    <div class="page" id="page-calendar">
+      <div class="cal-nav">
+        <button class="btn btn-ghost btn-sm" id="calPrev">← Sebelum</button>
+        <h2 id="calTitle"></h2>
+        <button class="btn btn-ghost btn-sm" id="calNext">Seterusnya →</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="mt-16" style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;">
+        <span><span class="badge badge-cuti">Cuti</span></span>
+        <span><span class="badge badge-akademik">Akademik</span></span>
+        <span><span class="badge badge-peperiksaan">Peperiksaan</span></span>
+        <span><span class="badge badge-aktiviti">Aktiviti</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Modal: Tambah/Edit Pengguna ═══════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="userModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="userModalTitle">Tambah Pengguna</h3>
+      <button class="close-btn" onclick="closeUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="userId"/>
+      <div class="form-group"><label>Nama Penuh</label><input id="userName" placeholder="Nama penuh"/></div>
+      <div class="form-group"><label>E-mel</label><input id="userEmail" type="email" placeholder="emel@politeknik.edu.my"/></div>
+      <div class="form-group"><label>Kata Laluan <span id="pwHint" class="text-muted text-sm">(kosongkan jika tidak tukar)</span></label><input id="userPassword" type="password" placeholder="Kata laluan"/></div>
+      <div class="form-group">
+        <label>Peranan</label>
+        <select id="userRole">
+          <option value="admin">Admin</option>
+          <option value="unit">Unit</option>
+          <option value="guest">Guest</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Nama Unit (untuk peranan Unit)</label><input id="userUnit" placeholder="cth: Unit Teknologi Maklumat"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeUserModal()">Batal</button>
+      <button class="btn btn-primary btn-sm" id="userSaveBtn" onclick="saveUser()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Modal: Tambah/Edit Event ══════════════════════════════════════════ -->
+<div class="modal-backdrop hidden" id="eventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="eventModalTitle">Tambah Acara</h3>
+      <button class="close-btn" onclick="closeEventModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="eventId"/>
+      <div class="form-group"><label>Tajuk Acara</label><input id="eventTitle" placeholder="Nama acara..."/></div>
+      <div class="form-group"><label>Penerangan</label><textarea id="eventDesc" rows="2" placeholder="Penerangan acara..."></textarea></div>
+      <div class="form-group"><label>Tarikh Mula</label><input id="eventDate" type="date"/></div>
+      <div class="form-group"><label>Tarikh Tamat (pilihan)</label><input id="eventEndDate" type="date"/></div>
+      <div class="form-group">
+        <label>Jenis</label>
+        <select id="eventType">
+          <option value="cuti">Cuti Umum</option>
+          <option value="akademik">Akademik</option>
+          <option value="peperiksaan">Peperiksaan</option>
+          <option value="aktiviti">Aktiviti</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeEventModal()">Batal</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEvent()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="api.js"></script>
+<script>
+// ── Init ────────────────────────────────────────────────────────────────────
+const user = requireAuth('admin');
+document.getElementById('sidebarName').textContent = user.name;
+document.getElementById('sidebarRole').textContent = 'Admin';
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('ms-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── Navigation ──────────────────────────────────────────────────────────────
+const pageTitles = { dashboard: 'Dashboard', users: 'Pengurusan Pengguna', events: 'Acara Kalendar', report: 'Laporan Aktiviti', calendar: 'Kalendar' };
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    const pg = item.dataset.page;
+    document.getElementById(`page-${pg}`).classList.add('active');
+    document.getElementById('pageTitle').textContent = pageTitles[pg];
+    if (pg === 'users')    loadUsers();
+    if (pg === 'events')   loadEvents();
+    if (pg === 'report')   loadReport();
+    if (pg === 'calendar') renderCal();
+    if (pg === 'dashboard') loadDashboard();
+  });
+});
+
+// ── State ────────────────────────────────────────────────────────────────────
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let allEvents = [];
+
+// ── Dashboard ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [users, report, events, acts] = await Promise.all([
+    api.get('/api/users'),
+    api.get('/api/users/report/summary'),
+    api.get('/api/events'),
+    api.get('/api/activities'),
+  ]);
+  allEvents = events;
+
+  const totalSelesai = report.reduce((s,r) => s + r.selesai, 0);
+  const totalBelum   = report.reduce((s,r) => s + r.belum,   0);
+  const totalActs    = totalSelesai + totalBelum;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${users.length}</div><div class="stat-lbl">Jumlah Pengguna</div></div>
+    <div class="stat-card green"><div class="stat-val">${totalSelesai}</div><div class="stat-lbl">Aktiviti Selesai</div></div>
+    <div class="stat-card red"><div class="stat-val">${totalBelum}</div><div class="stat-lbl">Aktiviti Belum</div></div>
+    <div class="stat-card orange"><div class="stat-val">${totalActs > 0 ? Math.round(totalSelesai/totalActs*100) : 0}%</div><div class="stat-lbl">Peratus Selesai</div></div>
+    <div class="stat-card"><div class="stat-val">${events.length}</div><div class="stat-lbl">Acara Kalendar</div></div>
+  `;
+
+  // Quick report
+  const qr = document.getElementById('quickReport');
+  if (!report.length) { qr.innerHTML = '<p class="text-muted">Tiada data.</p>'; }
+  else {
+    qr.innerHTML = report.map(r => `
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span class="bold">${r.name}</span>
+          <span class="text-muted text-sm">${r.peratus_selesai}%</span>
+        </div>
+        <div class="text-sm text-muted" style="margin-bottom:4px;">${r.unit_name||'—'} &bull; ${r.selesai}/${r.total} selesai</div>
+        <div class="progress-wrap"><div class="progress-bar" style="width:${r.peratus_selesai}%"></div></div>
+      </div>`).join('');
+  }
+
+  // Upcoming events
+  const today = new Date().toISOString().split('T')[0];
+  const upcoming = events.filter(e => e.event_date >= today).slice(0, 5);
+  const ue = document.getElementById('upcomingEvents');
+  if (!upcoming.length) { ue.innerHTML = '<p class="text-muted">Tiada acara akan datang.</p>'; }
+  else {
+    ue.innerHTML = upcoming.map(e => `
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+        <span class="badge badge-${e.type}">${e.type}</span>
+        <div>
+          <div class="bold">${e.title}</div>
+          <div class="text-sm text-muted">${e.event_date}${e.end_date ? ' — '+e.end_date : ''}</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ── Users CRUD ───────────────────────────────────────────────────────────────
+async function loadUsers() {
+  const users = await api.get('/api/users');
+  document.getElementById('usersTable').innerHTML = users.map((u, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${u.name}</td>
+      <td>${u.email}</td>
+      <td><span class="badge badge-${u.role}">${u.role}</span></td>
+      <td>${u.unit_name||'—'}</td>
+      <td class="text-muted">${u.created_at}</td>
+      <td>
+        <button class="btn btn-accent btn-sm" onclick="editUser(${JSON.stringify(u).replace(/"/g,'&quot;')})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.name}')">Padam</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openUserModal(u) {
+  document.getElementById('userId').value        = u ? u.id : '';
+  document.getElementById('userName').value      = u ? u.name : '';
+  document.getElementById('userEmail').value     = u ? u.email : '';
+  document.getElementById('userPassword').value  = '';
+  document.getElementById('userRole').value      = u ? u.role : 'unit';
+  document.getElementById('userUnit').value      = u ? (u.unit_name||'') : '';
+  document.getElementById('userModalTitle').textContent = u ? 'Edit Pengguna' : 'Tambah Pengguna';
+  document.getElementById('pwHint').style.display = u ? '' : 'none';
+  document.getElementById('userModal').classList.remove('hidden');
+}
+function editUser(u) { openUserModal(u); }
+function closeUserModal() { document.getElementById('userModal').classList.add('hidden'); }
+
+async function saveUser() {
+  const id   = document.getElementById('userId').value;
+  const body = {
+    name:      document.getElementById('userName').value,
+    email:     document.getElementById('userEmail').value,
+    role:      document.getElementById('userRole').value,
+    unit_name: document.getElementById('userUnit').value || null,
+  };
+  const pw = document.getElementById('userPassword').value;
+  if (pw) body.password = pw;
+  if (!id && !pw) { showToast('Kata laluan diperlukan untuk pengguna baru','error'); return; }
+
+  try {
+    if (id) await api.put(`/api/users/${id}`, body);
+    else    await api.post('/api/users', { ...body, password: pw });
+    closeUserModal();
+    showToast('Pengguna berjaya disimpan', 'success');
+    loadUsers();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Padam pengguna "${name}"?`)) return;
+  try {
+    await api.delete(`/api/users/${id}`);
+    showToast('Pengguna berjaya dipadam', 'success');
+    loadUsers();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ── Events CRUD ──────────────────────────────────────────────────────────────
+async function loadEvents() {
+  const events = await api.get('/api/events');
+  allEvents = events;
+  document.getElementById('eventsTable').innerHTML = events.map((e, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${e.title}</td>
+      <td>${e.event_date}</td>
+      <td>${e.end_date||'—'}</td>
+      <td><span class="badge badge-${e.type}">${e.type}</span></td>
+      <td>
+        <button class="btn btn-accent btn-sm" onclick="editEvent(${JSON.stringify(e).replace(/"/g,'&quot;')})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id},'${e.title}')">Padam</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openEventModal(ev) {
+  document.getElementById('eventId').value       = ev ? ev.id : '';
+  document.getElementById('eventTitle').value    = ev ? ev.title : '';
+  document.getElementById('eventDesc').value     = ev ? (ev.description||'') : '';
+  document.getElementById('eventDate').value     = ev ? ev.event_date : '';
+  document.getElementById('eventEndDate').value  = ev ? (ev.end_date||'') : '';
+  document.getElementById('eventType').value     = ev ? ev.type : 'aktiviti';
+  document.getElementById('eventModalTitle').textContent = ev ? 'Edit Acara' : 'Tambah Acara';
+  document.getElementById('eventModal').classList.remove('hidden');
+}
+function editEvent(ev) { openEventModal(ev); }
+function closeEventModal() { document.getElementById('eventModal').classList.add('hidden'); }
+
+async function saveEvent() {
+  const id   = document.getElementById('eventId').value;
+  const body = {
+    title:       document.getElementById('eventTitle').value,
+    description: document.getElementById('eventDesc').value||null,
+    event_date:  document.getElementById('eventDate').value,
+    end_date:    document.getElementById('eventEndDate').value||null,
+    type:        document.getElementById('eventType').value,
+  };
+  try {
+    if (id) await api.put(`/api/events/${id}`, body);
+    else    await api.post('/api/events', body);
+    closeEventModal();
+    showToast('Acara berjaya disimpan', 'success');
+    loadEvents();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function deleteEvent(id, title) {
+  if (!confirm(`Padam acara "${title}"?`)) return;
+  try {
+    await api.delete(`/api/events/${id}`);
+    showToast('Acara berjaya dipadam', 'success');
+    loadEvents();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ── Report ────────────────────────────────────────────────────────────────────
+async function loadReport() {
+  const [report, acts] = await Promise.all([
+    api.get('/api/users/report/summary'),
+    api.get('/api/activities'),
+  ]);
+
+  document.getElementById('reportTable').innerHTML = report.length
+    ? report.map(r => `
+      <tr>
+        <td>${r.name}</td>
+        <td>${r.unit_name||'—'}</td>
+        <td class="bold">${r.total}</td>
+        <td style="color:var(--success)">${r.selesai}</td>
+        <td style="color:var(--danger)">${r.belum}</td>
+        <td class="bold">${r.peratus_selesai}%</td>
+        <td style="width:120px;"><div class="progress-wrap"><div class="progress-bar" style="width:${r.peratus_selesai}%"></div></div></td>
+      </tr>`).join('')
+    : '<tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px;">Tiada data</td></tr>';
+
+  document.getElementById('allActivitiesTable').innerHTML = acts.length
+    ? acts.map((a,i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>${a.user_name}</td>
+        <td>${a.unit_name||'—'}</td>
+        <td class="bold">${a.name}</td>
+        <td>${a.purpose||'—'}</td>
+        <td>${a.achievement||'—'}</td>
+        <td>${a.activity_date}</td>
+        <td><span class="badge badge-${a.status}">${a.status}</span></td>
+        <td>${a.justification||'—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="9" class="text-muted" style="text-align:center;padding:20px;">Tiada aktiviti</td></tr>';
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+async function renderCal() {
+  if (!allEvents.length) allEvents = await api.get('/api/events');
+  document.getElementById('calTitle').textContent = `${MONTHS_MS[calMonth]} ${calYear}`;
+  renderCalendar('calGrid', calYear, calMonth, allEvents);
+}
+document.getElementById('calPrev').onclick = () => { calMonth--; if (calMonth < 0) { calMonth=11; calYear--; } renderCal(); };
+document.getElementById('calNext').onclick = () => { calMonth++; if (calMonth > 11) { calMonth=0; calYear++; } renderCal(); };
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadDashboard();
+</script>
+</body>
+</html>

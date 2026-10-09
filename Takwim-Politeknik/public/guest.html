@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Tetamu — Takwim Politeknik</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .event-detail-card {
+      background: var(--surface); border-radius: 10px;
+      padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px;
+    }
+    .event-detail-card h4 { color: var(--primary); margin-bottom: 8px; }
+    .legend { display:flex; gap:12px; flex-wrap:wrap; font-size:12px; margin-top:12px; }
+    .event-list-sidebar { max-height: 400px; overflow-y: auto; }
+    .evt-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+    .evt-row:last-child { border-bottom: none; }
+    .evt-date { font-size:11px; color:var(--muted); white-space:nowrap; min-width:90px; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>📅 Takwim Politeknik</h2>
+      <p>Paparan Tetamu</p>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="calendar"><span class="nav-icon">🗓️</span> Kalendar</div>
+      <div class="nav-item" data-page="events"><span class="nav-icon">📋</span> Senarai Acara</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="sidebarName">—</strong><span class="text-sm">Tetamu</span></div>
+      <button class="btn btn-ghost btn-sm w-full" onclick="logout()">Log Keluar</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <h1 id="pageTitle">Kalendar Akademik</h1>
+      <span class="text-muted text-sm" id="topDate"></span>
+    </div>
+
+    <!-- ═══ PAGE: KALENDAR ════════════════════════════════════════════════ -->
+    <div class="page active" id="page-calendar">
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+        <div>
+          <div class="cal-nav">
+            <button class="btn btn-ghost btn-sm" id="calPrev">← Sebelum</button>
+            <h2 id="calTitle"></h2>
+            <button class="btn btn-ghost btn-sm" id="calNext">Seterusnya →</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="legend">
+            <span><span class="badge badge-cuti">Cuti Umum</span></span>
+            <span><span class="badge badge-akademik">Akademik</span></span>
+            <span><span class="badge badge-peperiksaan">Peperiksaan</span></span>
+            <span><span class="badge badge-aktiviti">Aktiviti</span></span>
+          </div>
+        </div>
+
+        <div>
+          <!-- Acara dipilih / hari ini -->
+          <div class="event-detail-card" id="selectedDayCard">
+            <h4 id="selectedDayTitle">Klik pada hari untuk melihat acara</h4>
+            <div id="selectedDayEvents" class="text-muted text-sm">—</div>
+          </div>
+
+          <!-- Acara bulan semasa -->
+          <div class="card">
+            <div class="card-header"><h3>Acara Bulan Ini</h3></div>
+            <div class="card-body event-list-sidebar" id="monthEventList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PAGE: SENARAI ACARA ═══════════════════════════════════════════ -->
+    <div class="page" id="page-events">
+      <div class="card">
+        <div class="card-header"><h3>Semua Acara Kalendar</h3></div>
+        <div class="card-body">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <input type="text" id="searchEvt" placeholder="Cari acara..." oninput="filterEvents()" style="max-width:220px;"/>
+            <select id="filterType" onchange="filterEvents()">
+              <option value="">Semua Jenis</option>
+              <option value="cuti">Cuti Umum</option>
+              <option value="akademik">Akademik</option>
+              <option value="peperiksaan">Peperiksaan</option>
+              <option value="aktiviti">Aktiviti</option>
+            </select>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Tajuk</th><th>Tarikh Mula</th><th>Tarikh Tamat</th><th>Jenis</th><th>Penerangan</th></tr></thead>
+            <tbody id="allEventsTable"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="api.js"></script>
+<script>
+// ── Init ────────────────────────────────────────────────────────────────────
+const user = requireAuth('guest');
+document.getElementById('sidebarName').textContent = user.name;
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('ms-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+// ── Navigation ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    const pg = item.dataset.page;
+    document.getElementById(`page-${pg}`).classList.add('active');
+    document.getElementById('pageTitle').textContent = pg === 'calendar' ? 'Kalendar Akademik' : 'Senarai Acara';
+    if (pg === 'events') renderEventsList();
+  });
+});
+
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let allEvents = [];
+
+// ── Load events ──────────────────────────────────────────────────────────────
+async function init() {
+  allEvents = await api.get('/api/events');
+  renderCal();
+  showMonthEvents();
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+function renderCal() {
+  document.getElementById('calTitle').textContent = `${MONTHS_MS[calMonth]} ${calYear}`;
+  renderCalendar('calGrid', calYear, calMonth, allEvents, onDayClick);
+  showMonthEvents();
+}
+
+function onDayClick(dateStr, dayEvts) {
+  const [y, m, d] = dateStr.split('-');
+  document.getElementById('selectedDayTitle').textContent =
+    `${parseInt(d)} ${MONTHS_MS[parseInt(m)-1]} ${y}`;
+
+  const card = document.getElementById('selectedDayEvents');
+  if (!dayEvts.length) {
+    card.innerHTML = '<span class="text-muted">Tiada acara pada hari ini.</span>';
+  } else {
+    card.innerHTML = dayEvts.map(e => `
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+        <span class="badge badge-${e.type}">${e.type}</span>
+        <div>
+          <div class="bold">${e.title}</div>
+          ${e.description ? `<div class="text-sm text-muted">${e.description}</div>` : ''}
+        </div>
+      </div>`).join('');
+  }
+}
+
+function showMonthEvents() {
+  const monthStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const mEvts = allEvents
+    .filter(e => e.event_date.startsWith(monthStr))
+    .sort((a,b) => a.event_date.localeCompare(b.event_date));
+
+  const el = document.getElementById('monthEventList');
+  if (!mEvts.length) {
+    el.innerHTML = '<p class="text-muted text-sm" style="padding:4px 0;">Tiada acara bulan ini.</p>';
+    return;
+  }
+  el.innerHTML = mEvts.map(e => `
+    <div class="evt-row">
+      <span class="evt-date">${e.event_date}</span>
+      <div>
+        <span class="badge badge-${e.type}">${e.type}</span>
+        <div class="bold" style="margin-top:2px;">${e.title}</div>
+        ${e.description ? `<div class="text-sm text-muted">${e.description}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+document.getElementById('calPrev').onclick = () => { calMonth--; if (calMonth < 0) { calMonth=11; calYear--; } renderCal(); };
+document.getElementById('calNext').onclick = () => { calMonth++; if (calMonth > 11) { calMonth=0; calYear++; } renderCal(); };
+
+// ── Events list page ─────────────────────────────────────────────────────────
+function renderEventsList() {
+  filterEvents();
+}
+
+function filterEvents() {
+  const search = document.getElementById('searchEvt').value.toLowerCase();
+  const type   = document.getElementById('filterType').value;
+
+  let evts = [...allEvents].sort((a,b) => a.event_date.localeCompare(b.event_date));
+  if (search) evts = evts.filter(e => e.title.toLowerCase().includes(search) || (e.description||'').toLowerCase().includes(search));
+  if (type)   evts = evts.filter(e => e.type === type);
+
+  document.getElementById('allEventsTable').innerHTML = evts.length
+    ? evts.map((e, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td class="bold">${e.title}</td>
+        <td>${e.event_date}</td>
+        <td>${e.end_date||'—'}</td>
+        <td><span class="badge badge-${e.type}">${e.type}</span></td>
+        <td class="text-muted">${e.description||'—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px;">Tiada acara ditemui</td></tr>';
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
