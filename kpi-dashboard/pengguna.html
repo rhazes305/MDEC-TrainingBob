@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pengguna - Sistem KPI</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>📊 Sistem KPI</h2>
+      <p>Portal Pengguna</p>
+    </div>
+    <div class="sidebar-role">
+      <div class="role-label">Log masuk sebagai</div>
+      <div class="role-name" id="sidebarUser">—</div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard Saya
+      </div>
+      <div class="nav-item" onclick="showPage('pencapaian')" id="nav-pencapaian">
+        <span class="nav-icon">✏️</span> Input Pencapaian
+      </div>
+      <div class="nav-item" onclick="showPage('dokumen')" id="nav-dokumen">
+        <span class="nav-icon">📁</span> Dokumen Sokongan
+      </div>
+      <div class="nav-item" onclick="showPage('status')" id="nav-status">
+        <span class="nav-icon">📌</span> Status Penyerahan
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">⬅ Log Keluar</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <h2 id="pageTitle">Dashboard Saya</h2>
+      <div class="topbar-right">
+        <span id="topbarDate"></span>
+        <div class="avatar" id="topbarAvatar">U</div>
+      </div>
+    </div>
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="alert info">ℹ Selamat datang! Sila kemaskini pencapaian KPI anda dan lampirkan dokumen sokongan.</div>
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-label">KPI Saya</div>
+          <div class="stat-value" id="my-total">0</div>
+          <div class="stat-sub">KPI ditetapkan</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Telah Dikemukakan</div>
+          <div class="stat-value" id="my-submitted">0</div>
+          <div class="stat-sub">Rekod diserahkan</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Dalam Draf</div>
+          <div class="stat-value" id="my-draft">0</div>
+          <div class="stat-sub">Belum dikemukakan</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-label">Purata Pencapaian</div>
+          <div class="stat-value" id="my-avg">—</div>
+          <div class="stat-sub">Purata peratus</div>
+        </div>
+      </div>
+
+      <div class="section-title">Ringkasan KPI Anda</div>
+      <div id="myKpiCards"></div>
+    </div>
+
+    <!-- PAGE: INPUT PENCAPAIAN -->
+    <div class="page" id="page-pencapaian">
+      <div class="section-title">✏️ Input / Kemaskini Pencapaian KPI</div>
+      <div id="pencapaianList"></div>
+    </div>
+
+    <!-- PAGE: DOKUMEN SOKONGAN -->
+    <div class="page" id="page-dokumen">
+      <div class="section-title">📁 Dokumen Sokongan</div>
+      <div class="alert info">ℹ Sistem ini menyimpan nama fail sebagai rekod. Dalam persekitaran sebenar, fail akan dimuat naik ke pelayan.</div>
+      <div id="dokumenList"></div>
+    </div>
+
+    <!-- PAGE: STATUS PENYERAHAN -->
+    <div class="page" id="page-status">
+      <div class="section-title">📌 Status Penyerahan KPI</div>
+      <div class="table-card">
+        <div class="table-header"><h3>Rekod Penyerahan</h3></div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>KPI</th>
+              <th>Pencapaian</th>
+              <th>Peratus</th>
+              <th>Dokumen</th>
+              <th>Tarikh</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="statusTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL INPUT PENCAPAIAN -->
+<div class="modal-overlay" id="inputModal">
+  <div class="modal">
+    <h3 id="inputModalTitle">✏️ Input Pencapaian</h3>
+    <input type="hidden" id="inputKpiId"/>
+    <div id="inputKpiInfo" style="background:#f7f8fa;padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px;"></div>
+    <div class="form-group">
+      <label>Pencapaian Semasa *</label>
+      <input type="number" id="inputValue" placeholder="Masukkan nilai pencapaian" min="0"/>
+    </div>
+    <div class="form-group">
+      <label>Catatan</label>
+      <textarea id="inputCatatan" placeholder="Catatan atau huraian pencapaian..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Tarikh Pencapaian</label>
+      <input type="date" id="inputTarikh"/>
+    </div>
+    <div class="form-group">
+      <label>Nama Fail Dokumen Sokongan</label>
+      <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
+        <div style="font-size:28px">📎</div>
+        <p>Klik untuk lampirkan dokumen sokongan</p>
+        <p id="uploadedFileName" style="color:#2563eb;font-weight:600;margin-top:4px;"></p>
+      </div>
+      <input type="file" id="fileUpload" style="display:none" onchange="handleFile(this)"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeInputModal()">Batal</button>
+      <button class="btn btn-outline" onclick="savePencapaian('Draf')">💾 Simpan Draf</button>
+      <button class="btn btn-primary" onclick="savePencapaian('Dikemukakan')">📤 Kemukakan</button>
+    </div>
+    <div id="inputMsg" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  checkAuth('pengguna');
+  document.getElementById('sidebarUser').textContent = getUser() + ' (Pengguna)';
+  document.getElementById('topbarAvatar').textContent = getUser()[0].toUpperCase();
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('ms-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  let selectedFile = '';
+
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    const titles = { dashboard:'Dashboard Saya', pencapaian:'Input Pencapaian', dokumen:'Dokumen Sokongan', status:'Status Penyerahan' };
+    document.getElementById('pageTitle').textContent = titles[name] || name;
+    if (name === 'dashboard') renderMyDashboard();
+    if (name === 'pencapaian') renderPencapaian();
+    if (name === 'dokumen') renderDokumen();
+    if (name === 'status') renderStatus();
+  }
+
+  function renderMyDashboard() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const cards = document.getElementById('myKpiCards');
+    cards.innerHTML = '';
+    let submitted = 0, draft = 0, totalPct = 0;
+
+    kpis.forEach(kpi => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      const color = getPctColor(pct);
+      if (ach && ach.status === 'Dikemukakan') submitted++;
+      else if (ach && ach.status === 'Draf') draft++;
+      totalPct += pct;
+
+      cards.innerHTML += `
+        <div class="kpi-item">
+          <div class="kpi-item-header">
+            <div>
+              <div class="kpi-item-title">${kpi.name}</div>
+              <div class="kpi-item-meta">${kpi.category} &bull; ${kpi.sasaran}</div>
+            </div>
+            ${getPctBadge(pct)}
+          </div>
+          <div class="kpi-item-body">
+            <div class="kpi-field"><label>Target</label><p>${kpi.target} ${kpi.unit}</p></div>
+            <div class="kpi-field"><label>Pencapaian</label><p style="color:${color==='green'?'#16a34a':color==='orange'?'#d97706':'#dc2626'}">${val} ${kpi.unit}</p></div>
+            <div class="kpi-field"><label>Weightage</label><p>${kpi.weightage}%</p></div>
+            <div class="kpi-field"><label>Status</label><p>${ach ? `<span class="badge ${ach.status==='Disahkan'?'green':ach.status==='Dikemukakan'?'blue':'gray'}">${ach.status}</span>` : '<span class="badge gray">Belum diisi</span>'}</p></div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${color}" style="width:${pct}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:#57606a">
+            <span>0%</span><b>${pct}%</b><span>100%</span>
+          </div>
+        </div>`;
+    });
+
+    document.getElementById('my-total').textContent = kpis.length;
+    document.getElementById('my-submitted').textContent = submitted;
+    document.getElementById('my-draft').textContent = draft;
+    document.getElementById('my-avg').textContent = kpis.length ? Math.round(totalPct / kpis.length) + '%' : '—';
+  }
+
+  function renderPencapaian() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const list = document.getElementById('pencapaianList');
+    list.innerHTML = '';
+
+    kpis.forEach(kpi => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : '—';
+      const pct = ach ? getPct(ach.pencapaian, kpi.target) : 0;
+      const isLocked = ach && ach.status === 'Disahkan';
+
+      list.innerHTML += `
+        <div class="kpi-item">
+          <div class="kpi-item-header">
+            <div>
+              <div class="kpi-item-title">${kpi.name}</div>
+              <div class="kpi-item-meta">${kpi.category} &bull; Target: ${kpi.target} ${kpi.unit} &bull; Weightage: ${kpi.weightage}%</div>
+            </div>
+            ${ach ? `<span class="badge ${ach.status==='Disahkan'?'green':ach.status==='Dikemukakan'?'blue':'gray'}">${ach.status}</span>` : '<span class="badge gray">Belum diisi</span>'}
+          </div>
+          <div class="kpi-item-body">
+            <div class="kpi-field"><label>Pencapaian Semasa</label><p>${val} ${val !== '—' ? kpi.unit : ''}</p></div>
+            <div class="kpi-field"><label>Peratus</label><p>${pct}%</p></div>
+            <div class="kpi-field"><label>Catatan</label><p style="font-weight:400">${ach ? ach.catatan || '—' : '—'}</p></div>
+            <div class="kpi-field"><label>Dokumen</label><p style="font-weight:400">${ach && ach.dokumen ? '📎 ' + ach.dokumen : '—'}</p></div>
+          </div>
+          ${isLocked
+            ? '<div class="alert success">✅ Pencapaian ini telah disahkan. Tiada pengubahsuaian dibenarkan.</div>'
+            : `<button class="btn btn-primary btn-sm" onclick="openInputModal(${kpi.id})">✏️ ${ach ? 'Kemaskini' : 'Input'} Pencapaian</button>`
+          }
+        </div>`;
+    });
+  }
+
+  function renderDokumen() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const list = document.getElementById('dokumenList');
+    list.innerHTML = '';
+    let hasDocs = false;
+
+    kpis.forEach(kpi => {
+      const ach = achvs.find(a => a.kpiId === kpi.id && a.dokumen);
+      if (!ach || !ach.dokumen) return;
+      hasDocs = true;
+      list.innerHTML += `
+        <div class="card" style="display:flex;align-items:center;gap:16px;padding:16px 20px;margin-bottom:12px;">
+          <div style="font-size:32px">📄</div>
+          <div style="flex:1">
+            <div style="font-weight:700;">${ach.dokumen}</div>
+            <div style="font-size:12px;color:#57606a;">KPI: ${kpi.name} &bull; Tarikh: ${ach.tarikh}</div>
+          </div>
+          <span class="badge ${ach.status==='Disahkan'?'green':ach.status==='Dikemukakan'?'blue':'gray'}">${ach.status}</span>
+        </div>`;
+    });
+
+    if (!hasDocs) list.innerHTML = '<div class="alert info">Tiada dokumen dilampirkan lagi.</div>';
+  }
+
+  function renderStatus() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const tbody = document.getElementById('statusTable');
+    tbody.innerHTML = '';
+    kpis.forEach((kpi, i) => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : '—';
+      const pct = ach ? getPct(ach.pencapaian, kpi.target) : 0;
+      tbody.innerHTML += `<tr>
+        <td>${i+1}</td>
+        <td><b>${kpi.name}</b></td>
+        <td>${val} ${ach ? kpi.unit : ''}</td>
+        <td>${ach ? pct + '%' : '—'}</td>
+        <td>${ach && ach.dokumen ? '📎 ' + ach.dokumen : '—'}</td>
+        <td>${ach ? ach.tarikh : '—'}</td>
+        <td>${ach ? `<span class="badge ${ach.status==='Disahkan'?'green':ach.status==='Dikemukakan'?'blue':'gray'}">${ach.status}</span>` : '<span class="badge gray">Belum diisi</span>'}</td>
+      </tr>`;
+    });
+  }
+
+  function openInputModal(kpiId) {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const kpi = kpis.find(k => k.id === kpiId);
+    const ach = achvs.find(a => a.kpiId === kpiId);
+    if (!kpi) return;
+
+    document.getElementById('inputKpiId').value = kpiId;
+    document.getElementById('inputModalTitle').textContent = '✏️ ' + kpi.name;
+    document.getElementById('inputKpiInfo').innerHTML = `
+      <b>Kategori:</b> ${kpi.category} &bull; <b>Target:</b> ${kpi.target} ${kpi.unit} &bull; <b>Weightage:</b> ${kpi.weightage}%
+    `;
+    document.getElementById('inputValue').value = ach ? ach.pencapaian : '';
+    document.getElementById('inputCatatan').value = ach ? ach.catatan : '';
+    document.getElementById('inputTarikh').value = ach ? ach.tarikh : new Date().toISOString().split('T')[0];
+    document.getElementById('uploadedFileName').textContent = ach && ach.dokumen ? '✅ ' + ach.dokumen : '';
+    selectedFile = ach ? ach.dokumen : '';
+    document.getElementById('inputMsg').innerHTML = '';
+    document.getElementById('inputModal').classList.add('open');
+  }
+
+  function closeInputModal() {
+    document.getElementById('inputModal').classList.remove('open');
+  }
+
+  function handleFile(input) {
+    if (input.files && input.files[0]) {
+      selectedFile = input.files[0].name;
+      document.getElementById('uploadedFileName').textContent = '✅ ' + selectedFile;
+    }
+  }
+
+  function savePencapaian(status) {
+    const kpiId = parseInt(document.getElementById('inputKpiId').value);
+    const val = parseFloat(document.getElementById('inputValue').value);
+    const catatan = document.getElementById('inputCatatan').value.trim();
+    const tarikh = document.getElementById('inputTarikh').value;
+    const msg = document.getElementById('inputMsg');
+
+    if (isNaN(val) || val < 0) { msg.innerHTML = '<div class="alert warning">⚠ Sila masukkan nilai pencapaian yang sah.</div>'; return; }
+    if (!tarikh) { msg.innerHTML = '<div class="alert warning">⚠ Sila pilih tarikh pencapaian.</div>'; return; }
+
+    let achvs = getAchievements();
+    const idx = achvs.findIndex(a => a.kpiId === kpiId);
+    const newAch = { kpiId, pencapaian: val, catatan, dokumen: selectedFile, tarikh, status };
+
+    if (idx > -1) {
+      newAch.id = achvs[idx].id;
+      achvs[idx] = newAch;
+    } else {
+      newAch.id = achvs.length > 0 ? Math.max(...achvs.map(a => a.id)) + 1 : 1;
+      achvs.push(newAch);
+    }
+
+    saveAchievements(achvs);
+    msg.innerHTML = `<div class="alert success">✅ Pencapaian berjaya ${status === 'Draf' ? 'disimpan sebagai draf' : 'dikemukakan'}!</div>`;
+    setTimeout(() => { closeInputModal(); renderPencapaian(); renderMyDashboard(); }, 1200);
+  }
+
+  renderMyDashboard();
+</script>
+</body>
+</html>

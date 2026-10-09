@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pengurusan - Sistem KPI</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>📊 Sistem KPI</h2>
+      <p>Portal Pengurusan</p>
+    </div>
+    <div class="sidebar-role">
+      <div class="role-label">Log masuk sebagai</div>
+      <div class="role-name" id="sidebarUser">—</div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard Utama
+      </div>
+      <div class="nav-item" onclick="showPage('analisis')" id="nav-analisis">
+        <span class="nav-icon">📊</span> Analisis KPI
+      </div>
+      <div class="nav-item" onclick="showPage('laporan')" id="nav-laporan">
+        <span class="nav-icon">📄</span> Laporan Lengkap
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">⬅ Log Keluar</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <div class="topbar">
+      <h2 id="pageTitle">Dashboard Utama</h2>
+      <div class="topbar-right">
+        <span id="topbarDate"></span>
+        <div class="avatar" id="topbarAvatar" style="background:#7c5cd8">M</div>
+      </div>
+    </div>
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="alert info">👁 Anda log masuk sebagai Pengurusan — paparan semua data sahaja. Tiada tindakan pengubahsuaian dibenarkan.</div>
+
+      <!-- Overall Score Banner -->
+      <div class="card" id="overallBanner" style="background:#1a3a5c;color:#fff;border:none;margin-bottom:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div style="font-size:13px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;">Skor KPI Keseluruhan Organisasi</div>
+            <div style="font-size:48px;font-weight:800;margin:4px 0;" id="bigScore">—</div>
+            <div style="font-size:13px;opacity:.7;" id="bigScoreSub">—</div>
+          </div>
+          <div style="text-align:right">
+            <div id="bigBadge"></div>
+            <div style="font-size:13px;opacity:.7;margin-top:8px;" id="bigPeriod">Sehingga hari ini</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-label">Jumlah KPI</div>
+          <div class="stat-value" id="d-total">0</div>
+          <div class="stat-sub">KPI ditetapkan</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">KPI Mencapai Sasaran</div>
+          <div class="stat-value" id="d-good">0</div>
+          <div class="stat-sub">Pencapaian ≥ 85%</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">KPI Sederhana</div>
+          <div class="stat-value" id="d-mod">0</div>
+          <div class="stat-sub">Pencapaian 60–84%</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">KPI Perlu Perhatian</div>
+          <div class="stat-value" id="d-low">0</div>
+          <div class="stat-sub">Pencapaian &lt; 60%</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="table-card">
+        <div class="table-header"><h3>📊 Graf Pencapaian KPI</h3></div>
+        <div style="padding:20px 28px;">
+          <div id="mgmtChart"></div>
+        </div>
+      </div>
+
+      <!-- KPI Summary -->
+      <div class="table-card">
+        <div class="table-header"><h3>Ringkasan KPI</h3></div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>KPI</th><th>Kategori</th><th>Sasaran OD</th>
+              <th>Target</th><th>Pencapaian</th><th>Peratus</th>
+              <th>Weightage</th><th>Tahap</th>
+            </tr>
+          </thead>
+          <tbody id="mgmtTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE: ANALISIS -->
+    <div class="page" id="page-analisis">
+      <div class="section-title">📊 Analisis Mendalam KPI</div>
+
+      <!-- Breakdown by Category -->
+      <div class="table-card" style="margin-bottom:20px;">
+        <div class="table-header"><h3>Pecahan Mengikut Kategori</h3></div>
+        <div style="padding:20px;">
+          <div id="categoryChart"></div>
+        </div>
+      </div>
+
+      <!-- Weightage Distribution -->
+      <div class="table-card">
+        <div class="table-header"><h3>Agihan Weightage</h3></div>
+        <table>
+          <thead>
+            <tr><th>#</th><th>KPI</th><th>Weightage</th><th>Skor Semasa</th><th>Skor Berwajaran</th><th>Status</th></tr>
+          </thead>
+          <tbody id="weightTable"></tbody>
+        </table>
+        <div style="padding:16px 20px;border-top:1px solid #e5e7eb;">
+          <strong>Jumlah Skor Berwajaran: <span id="analysisTotalScore" style="color:#2563eb;font-size:18px;margin-left:8px;">—</span></strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: LAPORAN -->
+    <div class="page" id="page-laporan">
+      <div class="section-title">📄 Laporan Lengkap KPI</div>
+      <div style="display:flex;gap:10px;margin-bottom:20px;">
+        <button class="btn btn-outline" onclick="window.print()">🖨 Cetak Laporan</button>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>Laporan Komprehensif KPI</h3></div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>KPI</th><th>Kategori</th><th>Sasaran OD</th>
+              <th>Target</th><th>Pencapaian</th><th>%</th>
+              <th>Weightage</th><th>Skor Wajaran</th>
+              <th>Dokumen</th><th>Catatan</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="laporanTable"></tbody>
+        </table>
+        <div style="padding:16px 20px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:#57606a;font-size:13px;">Laporan dijana: <span id="laporanDate"></span></span>
+          <strong>Skor KPI: <span id="laporanScore" style="color:#2563eb;font-size:18px;margin-left:8px;">—</span></strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  checkAuth('pengurusan');
+  document.getElementById('sidebarUser').textContent = getUser() + ' (Pengurusan)';
+  document.getElementById('topbarAvatar').textContent = getUser()[0].toUpperCase();
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('ms-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    const titles = { dashboard:'Dashboard Utama', analisis:'Analisis KPI', laporan:'Laporan Lengkap' };
+    document.getElementById('pageTitle').textContent = titles[name] || name;
+    if (name === 'dashboard') renderDashboard();
+    if (name === 'analisis') renderAnalisis();
+    if (name === 'laporan') renderLaporan();
+  }
+
+  function renderDashboard() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    let good = 0, mod = 0, low = 0, totalWScore = 0, totalW = 0;
+    const tbody = document.getElementById('mgmtTable');
+    const chart = document.getElementById('mgmtChart');
+    tbody.innerHTML = ''; chart.innerHTML = '';
+
+    kpis.forEach((kpi, i) => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      const color = getPctColor(pct);
+      const wScore = ((pct / 100) * kpi.weightage).toFixed(1);
+      totalWScore += parseFloat(wScore);
+      totalW += kpi.weightage;
+      if (pct >= 85) good++; else if (pct >= 60) mod++; else low++;
+
+      chart.innerHTML += `
+        <div class="chart-bar-row">
+          <div class="chart-bar-label" title="${kpi.name}">${kpi.name}</div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-fill ${color}" style="width:${pct}%">${pct > 12 ? pct + '%' : ''}</div>
+          </div>
+          <div class="chart-bar-pct">${pct}%</div>
+        </div>`;
+
+      tbody.innerHTML += `<tr>
+        <td>${i+1}</td>
+        <td><b>${kpi.name}</b></td>
+        <td>${kpi.category}</td>
+        <td>${kpi.sasaran}</td>
+        <td>${kpi.target} ${kpi.unit}</td>
+        <td>${val} ${kpi.unit}</td>
+        <td>
+          <div class="progress-bar" style="width:110px">
+            <div class="progress-fill ${color}" style="width:${pct}%"></div>
+          </div>
+          <b>${pct}%</b>
+        </td>
+        <td><span class="badge blue">${kpi.weightage}%</span></td>
+        <td>${getPctBadge(pct)}</td>
+      </tr>`;
+    });
+
+    document.getElementById('d-total').textContent = kpis.length;
+    document.getElementById('d-good').textContent = good;
+    document.getElementById('d-mod').textContent = mod;
+    document.getElementById('d-low').textContent = low;
+
+    const overallPct = totalW > 0 ? Math.round((totalWScore / totalW) * 100) : 0;
+    document.getElementById('bigScore').textContent = totalWScore.toFixed(1) + ' / ' + totalW;
+    document.getElementById('bigScoreSub').textContent = `Prestasi keseluruhan: ${overallPct}%`;
+    document.getElementById('bigBadge').innerHTML = overallPct >= 85
+      ? '<span class="badge green" style="font-size:14px;padding:6px 16px;">✅ Cemerlang</span>'
+      : overallPct >= 60
+        ? '<span class="badge orange" style="font-size:14px;padding:6px 16px;">⚠ Memuaskan</span>'
+        : '<span class="badge red" style="font-size:14px;padding:6px 16px;">❌ Perlu Tindakan</span>';
+  }
+
+  function renderAnalisis() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const catMap = {};
+    let totalWScore = 0, totalW = 0;
+
+    const tbody = document.getElementById('weightTable');
+    tbody.innerHTML = '';
+    const catChart = document.getElementById('categoryChart');
+    catChart.innerHTML = '';
+
+    kpis.forEach((kpi, i) => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      const wScore = ((pct / 100) * kpi.weightage).toFixed(1);
+      totalWScore += parseFloat(wScore);
+      totalW += kpi.weightage;
+
+      if (!catMap[kpi.category]) catMap[kpi.category] = { totalPct: 0, count: 0 };
+      catMap[kpi.category].totalPct += pct;
+      catMap[kpi.category].count++;
+
+      tbody.innerHTML += `<tr>
+        <td>${i+1}</td>
+        <td><b>${kpi.name}</b></td>
+        <td><span class="badge blue">${kpi.weightage}%</span></td>
+        <td>${pct}%</td>
+        <td><b style="color:${pct>=85?'#16a34a':pct>=60?'#d97706':'#dc2626'}">${wScore}</b></td>
+        <td>${getPctBadge(pct)}</td>
+      </tr>`;
+    });
+
+    document.getElementById('analysisTotalScore').textContent = totalWScore.toFixed(1) + ' / ' + totalW;
+
+    Object.entries(catMap).forEach(([cat, data]) => {
+      const avgPct = Math.round(data.totalPct / data.count);
+      const color = getPctColor(avgPct);
+      catChart.innerHTML += `
+        <div class="chart-bar-row">
+          <div class="chart-bar-label" title="${cat}">${cat}</div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-fill ${color}" style="width:${avgPct}%">${avgPct > 12 ? avgPct + '%' : ''}</div>
+          </div>
+          <div class="chart-bar-pct">${avgPct}%</div>
+        </div>`;
+    });
+  }
+
+  function renderLaporan() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const tbody = document.getElementById('laporanTable');
+    tbody.innerHTML = '';
+    let totalWScore = 0, totalW = 0;
+
+    kpis.forEach((kpi, i) => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      const color = getPctColor(pct);
+      const wScore = ((pct / 100) * kpi.weightage).toFixed(1);
+      totalWScore += parseFloat(wScore);
+      totalW += kpi.weightage;
+
+      tbody.innerHTML += `<tr>
+        <td>${i+1}</td>
+        <td><b>${kpi.name}</b></td>
+        <td>${kpi.category}</td>
+        <td>${kpi.sasaran}</td>
+        <td>${kpi.target} ${kpi.unit}</td>
+        <td>${val} ${kpi.unit}</td>
+        <td>
+          <div class="progress-bar" style="width:80px">
+            <div class="progress-fill ${color}" style="width:${pct}%"></div>
+          </div>
+          <b>${pct}%</b>
+        </td>
+        <td>${kpi.weightage}%</td>
+        <td><b style="color:${color==='green'?'#16a34a':color==='orange'?'#d97706':'#dc2626'}">${wScore}</b></td>
+        <td>${ach && ach.dokumen ? '📎 ' + ach.dokumen : '—'}</td>
+        <td>${ach ? ach.catatan || '—' : '—'}</td>
+        <td>${getPctBadge(pct)}</td>
+      </tr>`;
+    });
+
+    document.getElementById('laporanScore').textContent = totalWScore.toFixed(1) + ' / ' + totalW;
+    document.getElementById('laporanDate').textContent = new Date().toLocaleDateString('ms-MY', { year:'numeric', month:'long', day:'numeric' });
+  }
+
+  renderDashboard();
+</script>
+</body>
+</html>

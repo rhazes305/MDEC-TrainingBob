@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Sistem KPI</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>📊 Sistem KPI</h2>
+      <p>Panel Pentadbir / OD</p>
+    </div>
+    <div class="sidebar-role">
+      <div class="role-label">Log masuk sebagai</div>
+      <div class="role-name" id="sidebarUser">—</div>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('kpi-list')" id="nav-kpi-list">
+        <span class="nav-icon">📋</span> Senarai KPI
+      </div>
+      <div class="nav-item" onclick="showPage('tambah-kpi')" id="nav-tambah-kpi">
+        <span class="nav-icon">➕</span> Tambah KPI
+      </div>
+      <div class="nav-item" onclick="showPage('laporan')" id="nav-laporan">
+        <span class="nav-icon">📊</span> Laporan
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">⬅ Log Keluar</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="topbar-right">
+        <span id="topbarDate"></span>
+        <div class="avatar" id="topbarAvatar">A</div>
+      </div>
+    </div>
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-label">Jumlah KPI</div>
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-sub">KPI aktif ditetapkan</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">KPI Capai Sasaran</div>
+          <div class="stat-value" id="stat-achieved">0</div>
+          <div class="stat-sub">Pencapaian ≥ 85%</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">KPI Sederhana</div>
+          <div class="stat-value" id="stat-moderate">0</div>
+          <div class="stat-sub">Pencapaian 60–84%</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">KPI Rendah</div>
+          <div class="stat-value" id="stat-low">0</div>
+          <div class="stat-sub">Pencapaian &lt; 60%</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3>📊 Pencapaian KPI Keseluruhan</h3>
+          <span class="badge blue" id="overall-score-badge">—</span>
+        </div>
+        <div style="padding:20px;">
+          <div class="chart-container" id="dashboardChart"></div>
+        </div>
+      </div>
+
+      <!-- Summary Table -->
+      <div class="table-card">
+        <div class="table-header"><h3>Ringkasan Pencapaian</h3></div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama KPI</th>
+              <th>Kategori</th>
+              <th>Sasaran</th>
+              <th>Pencapaian</th>
+              <th>Peratus</th>
+              <th>Weightage</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE: SENARAI KPI -->
+    <div class="page" id="page-kpi-list">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>📋 Senarai KPI</h3>
+          <button class="btn btn-primary" onclick="showPage('tambah-kpi')">➕ Tambah KPI</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama KPI</th>
+              <th>Kategori</th>
+              <th>Sasaran OD</th>
+              <th>Target</th>
+              <th>Weightage (%)</th>
+              <th>Status</th>
+              <th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="kpiListTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE: TAMBAH / EDIT KPI -->
+    <div class="page" id="page-tambah-kpi">
+      <div class="card" style="max-width:600px">
+        <h3 id="formTitle">➕ Tambah KPI Baharu</h3>
+        <input type="hidden" id="editKpiId"/>
+        <div class="form-group">
+          <label>Nama KPI *</label>
+          <input type="text" id="kpiName" placeholder="Contoh: Latihan Kakitangan"/>
+        </div>
+        <div class="form-group">
+          <label>Kategori *</label>
+          <input type="text" id="kpiCategory" placeholder="Contoh: Pembangunan SDM"/>
+        </div>
+        <div class="form-group">
+          <label>Sasaran OD *</label>
+          <input type="text" id="kpiSasaran" placeholder="Contoh: OD Unit A"/>
+        </div>
+        <div class="form-group">
+          <label>Target (Nilai) *</label>
+          <input type="number" id="kpiTarget" placeholder="Contoh: 10"/>
+        </div>
+        <div class="form-group">
+          <label>Unit Ukuran *</label>
+          <input type="text" id="kpiUnit" placeholder="Contoh: sesi, %, modul"/>
+        </div>
+        <div class="form-group">
+          <label>Weightage (%) *</label>
+          <input type="number" id="kpiWeightage" placeholder="Contoh: 20" min="1" max="100"/>
+          <small style="color:#57606a;font-size:11px;" id="weightageHint"></small>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="kpiStatus">
+            <option value="Aktif">Aktif</option>
+            <option value="Tidak Aktif">Tidak Aktif</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn btn-primary" onclick="saveKPI()">💾 Simpan KPI</button>
+          <button class="btn btn-outline" onclick="resetForm()">✕ Batal</button>
+        </div>
+        <div id="formMsg" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: LAPORAN -->
+    <div class="page" id="page-laporan">
+      <div class="stats-grid" id="laporan-stats"></div>
+      <div class="table-card">
+        <div class="table-header">
+          <h3>📈 Laporan Pencapaian KPI Terperinci</h3>
+          <button class="btn btn-outline btn-sm" onclick="printLaporan()">🖨 Cetak</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nama KPI</th>
+              <th>Target</th>
+              <th>Pencapaian</th>
+              <th>%</th>
+              <th>Weightage</th>
+              <th>Skor Wajaran</th>
+              <th>Catatan</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="laporanTable"></tbody>
+        </table>
+        <div style="padding:16px 20px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;">
+          <strong>Jumlah Skor KPI Berwajaran: <span id="totalScore" style="color:#2563eb;font-size:18px;margin-left:8px;">—</span></strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>✏️ Edit KPI</h3>
+    <input type="hidden" id="modalKpiId"/>
+    <div class="form-group"><label>Nama KPI</label><input type="text" id="modalName"/></div>
+    <div class="form-group"><label>Kategori</label><input type="text" id="modalCategory"/></div>
+    <div class="form-group"><label>Sasaran OD</label><input type="text" id="modalSasaran"/></div>
+    <div class="form-group"><label>Target</label><input type="number" id="modalTarget"/></div>
+    <div class="form-group"><label>Unit</label><input type="text" id="modalUnit"/></div>
+    <div class="form-group"><label>Weightage (%)</label><input type="number" id="modalWeightage" min="1" max="100"/></div>
+    <div class="form-group"><label>Status</label>
+      <select id="modalStatus">
+        <option>Aktif</option>
+        <option>Tidak Aktif</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="updateKPI()">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+  checkAuth('admin');
+  document.getElementById('sidebarUser').textContent = getUser() + ' (Admin/OD)';
+  document.getElementById('topbarAvatar').textContent = getUser()[0].toUpperCase();
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('ms-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    const titles = { dashboard:'Dashboard', 'kpi-list':'Senarai KPI', 'tambah-kpi':'Tambah KPI', laporan:'Laporan' };
+    document.getElementById('pageTitle').textContent = titles[name] || name;
+    if (name === 'dashboard') renderDashboard();
+    if (name === 'kpi-list') renderKPIList();
+    if (name === 'laporan') renderLaporan();
+    if (name === 'tambah-kpi') { resetForm(); updateWeightageHint(); }
+  }
+
+  function renderDashboard() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    let achieved = 0, moderate = 0, low = 0;
+    const chart = document.getElementById('dashboardChart');
+    const tbody = document.getElementById('dashboardTable');
+    chart.innerHTML = '';
+    tbody.innerHTML = '';
+    let totalWScore = 0, totalWeight = 0;
+
+    kpis.forEach((kpi, i) => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      const color = getPctColor(pct);
+      if (pct >= 85) achieved++;
+      else if (pct >= 60) moderate++;
+      else low++;
+      const wScore = ((pct / 100) * kpi.weightage).toFixed(1);
+      totalWScore += parseFloat(wScore);
+      totalWeight += kpi.weightage;
+
+      chart.innerHTML += `
+        <div class="chart-bar-row">
+          <div class="chart-bar-label" title="${kpi.name}">${kpi.name}</div>
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-fill ${color}" style="width:${pct}%">${pct > 15 ? pct + '%' : ''}</div>
+          </div>
+          <div class="chart-bar-pct" style="color:var(--c,#374151)">${pct}%</div>
+        </div>`;
+
+      tbody.innerHTML += `<tr>
+        <td>${i+1}</td>
+        <td><b>${kpi.name}</b></td>
+        <td>${kpi.category}</td>
+        <td>${kpi.target} ${kpi.unit}</td>
+        <td>${val} ${kpi.unit}</td>
+        <td>
+          <div class="progress-bar" style="width:120px;">
+            <div class="progress-fill ${color}" style="width:${pct}%"></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;">${pct}%</span>
+        </td>
+        <td><span class="badge blue">${kpi.weightage}%</span></td>
+        <td>${getPctBadge(pct)}</td>
+      </tr>`;
+    });
+
+    document.getElementById('stat-total').textContent = kpis.length;
+    document.getElementById('stat-achieved').textContent = achieved;
+    document.getElementById('stat-moderate').textContent = moderate;
+    document.getElementById('stat-low').textContent = low;
+    const overallPct = totalWeight > 0 ? Math.round(totalWScore / totalWeight * 100) : 0;
+    document.getElementById('overall-score-badge').textContent = `Skor KPI: ${totalWScore.toFixed(1)} / ${totalWeight}`;
+  }
+
+  function renderKPIList() {
+    const kpis = getKPIs();
+    const tbody = document.getElementById('kpiListTable');
+    tbody.innerHTML = '';
+    kpis.forEach((kpi, i) => {
+      tbody.innerHTML += `<tr>
+        <td>${i+1}</td>
+        <td><b>${kpi.name}</b></td>
+        <td>${kpi.category}</td>
+        <td>${kpi.sasaran}</td>
+        <td>${kpi.target} ${kpi.unit}</td>
+        <td><span class="badge blue">${kpi.weightage}%</span></td>
+        <td><span class="badge ${kpi.status === 'Aktif' ? 'green' : 'gray'}">${kpi.status}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="openEdit(${kpi.id})">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteKPI(${kpi.id})" style="margin-left:4px;">🗑</button>
+        </td>
+      </tr>`;
+    });
+  }
+
+  function updateWeightageHint() {
+    const kpis = getKPIs();
+    const total = kpis.reduce((s, k) => s + k.weightage, 0);
+    const hint = document.getElementById('weightageHint');
+    if (hint) hint.textContent = `Jumlah weightage semasa: ${total}% (baki: ${100 - total}%)`;
+  }
+
+  function saveKPI() {
+    const name = document.getElementById('kpiName').value.trim();
+    const category = document.getElementById('kpiCategory').value.trim();
+    const sasaran = document.getElementById('kpiSasaran').value.trim();
+    const target = parseFloat(document.getElementById('kpiTarget').value);
+    const unit = document.getElementById('kpiUnit').value.trim();
+    const weightage = parseFloat(document.getElementById('kpiWeightage').value);
+    const status = document.getElementById('kpiStatus').value;
+    const msg = document.getElementById('formMsg');
+
+    if (!name || !category || !sasaran || isNaN(target) || !unit || isNaN(weightage)) {
+      msg.innerHTML = '<div class="alert warning">⚠ Sila isi semua medan bertanda *</div>'; return;
+    }
+    const kpis = getKPIs();
+    const totalW = kpis.reduce((s, k) => s + k.weightage, 0);
+    if (totalW + weightage > 100) {
+      msg.innerHTML = `<div class="alert warning">⚠ Jumlah weightage melebihi 100%. Baki: ${100 - totalW}%</div>`; return;
+    }
+    const newId = kpis.length > 0 ? Math.max(...kpis.map(k => k.id)) + 1 : 1;
+    kpis.push({ id: newId, name, category, sasaran, target, unit, weightage, status });
+    saveKPIs(kpis);
+    msg.innerHTML = '<div class="alert success">✅ KPI berjaya ditambah!</div>';
+    document.getElementById('kpiName').value = '';
+    document.getElementById('kpiCategory').value = '';
+    document.getElementById('kpiSasaran').value = '';
+    document.getElementById('kpiTarget').value = '';
+    document.getElementById('kpiUnit').value = '';
+    document.getElementById('kpiWeightage').value = '';
+    updateWeightageHint();
+    setTimeout(() => msg.innerHTML = '', 3000);
+  }
+
+  function resetForm() {
+    ['kpiName','kpiCategory','kpiSasaran','kpiTarget','kpiUnit','kpiWeightage'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('formMsg').innerHTML = '';
+    document.getElementById('formTitle').textContent = '➕ Tambah KPI Baharu';
+  }
+
+  function openEdit(id) {
+    const kpis = getKPIs();
+    const kpi = kpis.find(k => k.id === id);
+    if (!kpi) return;
+    document.getElementById('modalKpiId').value = kpi.id;
+    document.getElementById('modalName').value = kpi.name;
+    document.getElementById('modalCategory').value = kpi.category;
+    document.getElementById('modalSasaran').value = kpi.sasaran;
+    document.getElementById('modalTarget').value = kpi.target;
+    document.getElementById('modalUnit').value = kpi.unit;
+    document.getElementById('modalWeightage').value = kpi.weightage;
+    document.getElementById('modalStatus').value = kpi.status;
+    document.getElementById('editModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('editModal').classList.remove('open');
+  }
+
+  function updateKPI() {
+    const id = parseInt(document.getElementById('modalKpiId').value);
+    const kpis = getKPIs();
+    const idx = kpis.findIndex(k => k.id === id);
+    if (idx === -1) return;
+    kpis[idx].name = document.getElementById('modalName').value;
+    kpis[idx].category = document.getElementById('modalCategory').value;
+    kpis[idx].sasaran = document.getElementById('modalSasaran').value;
+    kpis[idx].target = parseFloat(document.getElementById('modalTarget').value);
+    kpis[idx].unit = document.getElementById('modalUnit').value;
+    kpis[idx].weightage = parseFloat(document.getElementById('modalWeightage').value);
+    kpis[idx].status = document.getElementById('modalStatus').value;
+    saveKPIs(kpis);
+    closeModal();
+    renderKPIList();
+  }
+
+  function deleteKPI(id) {
+    if (!confirm('Padam KPI ini? Tindakan tidak boleh dibatalkan.')) return;
+    let kpis = getKPIs();
+    kpis = kpis.filter(k => k.id !== id);
+    saveKPIs(kpis);
+    renderKPIList();
+  }
+
+  function renderLaporan() {
+    const kpis = getKPIs();
+    const achvs = getAchievements();
+    const tbody = document.getElementById('laporanTable');
+    const stats = document.getElementById('laporan-stats');
+    tbody.innerHTML = '';
+    let totalW = 0, totalWScore = 0;
+
+    kpis.forEach((kpi, i) => {
+      const ach = achvs.find(a => a.kpiId === kpi.id);
+      const val = ach ? ach.pencapaian : 0;
+      const pct = getPct(val, kpi.target);
+      const color = getPctColor(pct);
+      const wScore = ((pct / 100) * kpi.weightage).toFixed(1);
+      totalW += kpi.weightage;
+      totalWScore += parseFloat(wScore);
+      tbody.innerHTML += `<tr>
+        <td>${i+1}</td>
+        <td><b>${kpi.name}</b><br/><small style="color:#57606a">${kpi.category}</small></td>
+        <td>${kpi.target} ${kpi.unit}</td>
+        <td>${val} ${kpi.unit}</td>
+        <td>
+          <div class="progress-bar" style="width:100px">
+            <div class="progress-fill ${color}" style="width:${pct}%"></div>
+          </div>
+          <b>${pct}%</b>
+        </td>
+        <td>${kpi.weightage}%</td>
+        <td><b style="color:${color === 'green' ? '#16a34a' : color === 'orange' ? '#d97706' : '#dc2626'}">${wScore}</b></td>
+        <td>${ach ? ach.catatan : '—'}</td>
+        <td>${getPctBadge(pct)}</td>
+      </tr>`;
+    });
+
+    document.getElementById('totalScore').textContent = totalWScore.toFixed(1) + ' / ' + totalW;
+
+    stats.innerHTML = `
+      <div class="stat-card blue"><div class="stat-label">Jumlah KPI</div><div class="stat-value">${kpis.length}</div></div>
+      <div class="stat-card green"><div class="stat-label">Skor Berwajaran</div><div class="stat-value" style="font-size:22px">${totalWScore.toFixed(1)}</div><div class="stat-sub">/ ${totalW} mata</div></div>
+      <div class="stat-card ${totalW > 0 && totalWScore / totalW * 100 >= 85 ? 'green' : totalW > 0 && totalWScore / totalW * 100 >= 60 ? 'orange' : 'red'}">
+        <div class="stat-label">Prestasi Keseluruhan</div>
+        <div class="stat-value">${totalW > 0 ? Math.round(totalWScore / totalW * 100) : 0}%</div>
+      </div>`;
+  }
+
+  function printLaporan() { window.print(); }
+
+  // Init
+  renderDashboard();
+</script>
+</body>
+</html>
